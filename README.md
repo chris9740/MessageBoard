@@ -7,7 +7,7 @@ Message board is a REST API for sending messages on a board.
 Clone this package from Github, cd into it, and run `npm install` to install the dependencies needed
 
 ```bash
-git clone <url>
+git clone https://github.com/chris9740/MessageBoard.git
 cd MessageBoard
 npm install
 ```
