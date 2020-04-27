@@ -1,0 +1,28 @@
+{
+  "name": "message-board",
+  "version": "1.0.0",
+  "description": "Message board with authentication",
+  "main": "index.js",
+  "scripts": {
+    "start": "env-cmd -f ./config/prod.env node src/index.js",
+    "dev": "DEBUG=* env-cmd -f ./config/dev.env nodemon src/index.js"
+  },
+  "author": "Chris",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "debug": "^4.1.1",
+    "env-cmd": "^10.1.0",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose-autopopulate": "^0.12.2",
+    "mongoose-beautiful-unique-validation": "^7.1.1",
+    "mongoose-hidden": "^1.9.0",
+    "socket.io": "^2.3.0",
+    "socketio-jwt": "^4.5.0",
+    "validator": "^13.0.0"
+  },
+  "devDependencies": {
+    "mongoose": "^5.9.10"
+  }
+}
