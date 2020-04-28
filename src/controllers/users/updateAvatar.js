@@ -1,11 +1,7 @@
-const sharp = require("sharp");
-
-const processAvatar = require("../../utils/processAvatar");
-
 module.exports = async (req, res) => {
-    const buffer = await processAvatar(req.file.buffer);
-	req.user.avatar = buffer;
-	await req.user.save();
-
-	res.send();
+    try {
+        req.user.setAvatar(req.file.buffer);
+    } catch (error) {
+        res.status(500).send();
+    }
 }

@@ -3,17 +3,19 @@ const User = require("../../models/user");
 const resizeAvatar = require("../../utils/resizeAvatar");
 
 module.exports = async (req, res) => {
+    res.set("Content-Type", "image/png");
+
     try {
         const user = await User.findById(req.params.userId);
 
-        if(!user || !user.avatar) {
-            throw "User not found";
+        if(!user) {
+            return res.status(404).send();
         }
 
-        res.set("Content-Type", "image/png");
-        res.send(await resizeAvatar(user.avatar, req.query.size));
+        const avatar = await user.getAvatar({ size: req.query.size });
+
+        res.send(avatar);
     } catch (error) {
-        console.log(error);
-        res.status(404).send();
+        res.status(500).send();
     }
 }

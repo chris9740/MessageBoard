@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
+const messageValidator = require("./validators/messageValidator");messageValidator
+
 const messageSchema = Schema({
     content: {
         type: String,
@@ -18,25 +20,7 @@ const messageSchema = Schema({
     versionKey: false
 });
 
-messageSchema.pre("validate", function(next) {
-    var { content } = this;
-
-    if(!content || content.trim().length == 0) {
-        throw [{
-            content: "This field is required"
-        }];
-    }
-
-    content = content.trim();
-
-    if(content.length < 1 || content.length > 2000) {
-        throw [{
-            content: "Must be between 1 and 2000 in length"
-        }];
-    }
-
-    next();
-});
+messageSchema.pre("validate", messageValidator);
 
 messageSchema.plugin(require("mongoose-autopopulate"));
 

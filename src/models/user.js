@@ -2,11 +2,12 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const fs = require("fs");
+const sharp = require("sharp");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const validator = require("validator");
 
-const processAvatar = require("../utils/processAvatar");
+const userValidator = require("./validators/userValidator");
 
 const userSchema = Schema({
     username: {
@@ -74,6 +75,34 @@ userSchema.statics.findByCredentials = async function(email, password) {
     return user;
 }
 
+userSchema.methods.setAvatar = async function(buffer) {
+    const user = this;
+    const processedAvatar = await sharp(buffer).resize({ width: 1024, height: 1024, position: "center" }).png().toBuffer();
+
+    user.avatar = processedAvatar;
+    await user.save();
+
+    return true;
+}
+
+userSchema.methods.getAvatar = async function({ size=128 }={}) {
+    if(!this.avatar) {
+        return false;
+    }
+
+    size = parseInt(size);
+
+    if(size % 128 != 0) {
+        throw "Invalid size";
+    }
+
+    const output = await sharp(this.avatar)
+        .resize(size)
+        .toBuffer();
+
+    return output;
+}
+
 userSchema.methods.generateAuthToken = async function() {
     const user = this;
     const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET);
@@ -96,80 +125,7 @@ userSchema.methods.toJSON = function() {
     return userObject;
 }
 
-userSchema.pre("validate", async function(next) {
-    const errors = [];
-
-    var { username, email, password } = this;
-
-    if(!username || username.trim().length == 0) {
-        throw [{
-            username: "This field is required"
-        }];
-    }
-
-    if(!email || email.trim().length == 0) {
-        throw [{
-            email: "This field is required"
-        }];
-    }
-
-    if(!password || password.trim().length == 0) {
-        throw [{
-            password: "This field is required"
-        }];
-    }
-
-    username = username.trim();
-    email = email.trim();
-    password = password.trim();
-
-    // Custom validation
-    if(this.isModified("username")) {
-        if(await User.findOne({ username })) {
-            errors.push({
-                username: "This username is already taken"
-            });
-        }
-    }
-
-    if(this.isModified("email")) {
-        if(await User.findOne({ email })) {
-            errors.push({
-                email: "This email is already taken"
-            });
-        }
-    }
-
-    if(errors.length) {
-        throw errors;
-    }
-
-    if(!(/^[A-Za-z0-9._\-]+$/gm.test(username))) {
-        throw [{
-            username: "Invalid characters found"
-        }];
-    }
-
-    if(username.length < 3 || username.length > 16) {
-        throw [{
-            username: "Must be between 3 and 16 in length"
-        }];
-    }
-
-    if(email.length < 1 || email.length > 2000) {
-        throw [{
-            email: "Must be between 1 and 2000 in length"
-        }];
-    }
-
-    if(password.length < 6 || password.length > 100) {
-        throw [{
-            password: "Must be between 6 and 1000 in length"
-        }];
-    }
-
-    next();
-});
+userSchema.pre("validate", userValidator);
 
 userSchema.pre("save", async function(next) {
     if(this.isModified("password")) {
@@ -182,7 +138,7 @@ userSchema.pre("save", async function(next) {
         const avatarBase64 = avatarData.toString("base64");
         const avatarBuffer = Buffer.from(avatarBase64, "base64");
 
-        this.avatar = await processAvatar(avatarBuffer);
+        this.avatar = await this.setAvatar(avatarBuffer);
     }
 
     next();

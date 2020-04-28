@@ -13,7 +13,6 @@ module.exports = async (req, res) => {
         res.status(201).send({ user, token });
     } catch (error) {
         if(error instanceof Error) {
-            console.log(error);
             return res.status(500).send({
                 error: "Something went wrong"
             });

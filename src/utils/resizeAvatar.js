@@ -1,7 +1,7 @@
 const sharp = require("sharp");
 
 const resizeAvatar = async (buffer, size = 512) => {
-    const sizes = [256, 512, 1024];
+    const sizes = [128, 256, 512, 1024];
 
     size = parseInt(size);
 
