@@ -1,7 +1,9 @@
-const getProfile = require("./getProfile");
+const getOwnProfile = require("./getOwnProfile");
 const updateProfile = require("./updateProfile");
+const getProfile = require("./getProfile");
 
 module.exports = {
-    getProfile,
-    updateProfile
+    getOwnProfile,
+    updateProfile,
+    getProfile
 }
