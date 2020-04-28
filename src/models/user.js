@@ -1,9 +1,12 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
+const fs = require("fs");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const validator = require("validator");
+
+const processAvatar = require("../utils/processAvatar");
 
 const userSchema = Schema({
     username: {
@@ -37,6 +40,9 @@ const userSchema = Schema({
         minlength: 6,
         maxlength: 100,
         trim: true
+    },
+    avatar: {
+        type: Buffer
     },
     tokens: [{
         token: {
@@ -85,6 +91,7 @@ userSchema.methods.toJSON = function() {
     delete userObject.password;
     delete userObject.tokens;
     delete userObject.updatedAt;
+    delete userObject.avatar;
 
     return userObject;
 }
@@ -167,6 +174,15 @@ userSchema.pre("validate", async function(next) {
 userSchema.pre("save", async function(next) {
     if(this.isModified("password")) {
         this.password = await bcrypt.hash(this.password, 8);
+    }
+
+    if(this.isNew) {
+        // Load default avatar from file, convert to base64, then to buffer, and store on the user
+        const avatarData = fs.readFileSync(process.cwd() + "/src/assets/defaultAvatar.png");
+        const avatarBase64 = avatarData.toString("base64");
+        const avatarBuffer = Buffer.from(avatarBase64, "base64");
+
+        this.avatar = await processAvatar(avatarBuffer);
     }
 
     next();
